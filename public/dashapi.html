@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond::wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --dashboard-width: 1448px;
-      --dashboard-height: 1072px;
-      --aspect-ratio: calc(1072 / 1448);
+      --dashboard-width: 758px;
+      --dashboard-height: 1024px;
+      --aspect-ratio: calc(758 / 1024);
       
       /* Color variables */
       --text-primary: #000000;    /* For the most important information */
@@ -21,7 +21,7 @@
     }
     
     body {
-      font-family: 'Comic Neue', cursive;
+      font-family: 'EB Garamond', serif;
       margin: 0;
       background-color: #f0f0f0;
       width: 100vw;
@@ -35,7 +35,7 @@
     .container {
       width: var(--dashboard-width);
       height: var(--dashboard-height);
-      aspect-ratio: calc(1448 / 1072);
+      aspect-ratio: calc(1024 / 758);
       display: flex;
       background: #fff;
       max-width: 100vw;
@@ -245,14 +245,14 @@
       color: var(--text-primary);
     }
     
-    @media (max-aspect-ratio: 1448/1072) {
+    @media (max-aspect-ratio: 1024/758) {
       .container {
         width: 100vw;
         height: calc(100vw * var(--aspect-ratio));
       }
     }
     
-    @media (min-aspect-ratio: 1448/1072) {
+    @media (min-aspect-ratio: 1024/758) {
       .container {
         height: 100vh;
         width: calc(100vh / var(--aspect-ratio));

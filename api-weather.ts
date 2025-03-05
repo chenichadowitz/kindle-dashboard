@@ -5,70 +5,67 @@ import * as lucideIcons from 'lucide-static';
 import fs from 'fs';
 import { chromium } from 'playwright';
 
-const DASHBOARD_WIDTH = 1448;
-const DASHBOARD_HEIGHT = 1072;
+const DASHBOARD_WIDTH = 758;
+const DASHBOARD_HEIGHT = 1024;
 const PORT = 8080; // Different from the other weather server
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
 const WEATHER_LOCATION = {
-    lat: 50.041,
-    lon: -110.677
+    lat: 42.43378,
+    lon: -71.14306
 };
 
 // Weather icon mapping to Lucide static SVG strings
 // Best guess Environment Canada icons to Lucide icons
+// Open Meteo docs: https://open-meteo.com/en/docs#:~:text=Weather%20variable%20documentation
 const WEATHER_ICONS: { [key: string]: string } = {
-    '00': lucideIcons.Sun, // Sunny
-    '01': lucideIcons.SunMedium, // Mainly Sunny
-    '02': lucideIcons.CloudSun, // A mix of sun and cloud
-    '03': lucideIcons.Cloud, // Mainly cloudy
-    '10': lucideIcons.Cloud, // Cloudy/Overcast
-    '16': lucideIcons.CloudSnow, // Light Snow/Chance of flurries
-    '23': lucideIcons.Haze, // Haze
-    '26': lucideIcons.Snowflake, // Ice Crystals
-    '30': lucideIcons.Moon, // Clear (night)
-    '31': lucideIcons.MoonStar, // Mainly Clear/A few clouds (night)
-    '32': lucideIcons.CloudMoon, // Partly cloudy (night)
-    // Keeping other existing mappings
-    '04': lucideIcons.CloudRain, // Light Rain
-    '06': lucideIcons.CloudRainWind, // Rain
-    '07': lucideIcons.CloudSnow, // Light Snow
-    '08': lucideIcons.CloudSnow, // Snow
-    '11': lucideIcons.CloudFog, // Fog
-    '12': lucideIcons.CloudRain, // Showers
-    '13': lucideIcons.CloudRainWind, // Rain and Snow Mixed
-    '14': lucideIcons.CloudDrizzle, // Light Drizzle
-    '15': lucideIcons.CloudRainWind, // Rain or Snow
-    '17': lucideIcons.CloudLightning, // Thunderstorm
-    '18': lucideIcons.CloudHail, // Hail
-    '19': lucideIcons.CloudSunRain, // Mixed Rain and Sun
-    '24': lucideIcons.Wind, // Blowing Snow
-    '25': lucideIcons.Tornado, // Funnel Cloud
-    '27': lucideIcons.CloudSnow, // Blowing Snow
-    '28': lucideIcons.CloudFog, // Dense Fog
-    '29': lucideIcons.CloudSun, // Variable Cloudiness
-    '33': lucideIcons.CloudMoonRain, // Rain Showers Night
-    '34': lucideIcons.CloudSnow, // Snow Night
-    '35': lucideIcons.CloudLightning, // Thunderstorm Night
-    '36': lucideIcons.CloudDrizzle, // Drizzle Night
-    '37': lucideIcons.CloudFog, // Fog Night
-    '38': lucideIcons.CloudMoon, // Cloudy Night
-    '39': lucideIcons.CloudRainWind, // Rain Night
-    '40': lucideIcons.Thermometer, // Hot
-    '41': lucideIcons.ThermometerSnowflake, // Cold
-    '42': lucideIcons.Waves, // Humidity
-    '43': lucideIcons.Wind, // Wind
+    '0': lucideIcons.Sun, // Clear sky
+    '1': lucideIcons.SunMedium, // Mainly clear
+    '2': lucideIcons.CloudSun, // Partly cloudy
+    '3': lucideIcons.Cloud, // Overcase
+    '45': lucideIcons.CloudFog, // Fog
+    '46': lucideIcons.CloudFog, // Depositing rime fog
+    '51': lucideIcons.CloudDrizzle, // Light drizzle
+    '53': lucideIcons.CloudDrizzle, // Moderate drizzle
+    '55': lucideIcons.CloudDrizzle, // Dense drizzle
+    '56': lucideIcons.CloudHail, // Freezing light drizzle
+    '57': lucideIcons.CloudHail, // Freezing dense drizzle
+    '61': lucideIcons.CloudRain, // Light rain
+    '63': lucideIcons.CloudRain, // Moderate rain
+    '65': lucideIcons.CloudRainWind, // Heavy rain
+    '66': lucideIcons.CloudHail, // Freezing light rain
+    '67': lucideIcons.CloudHail, // Freezing heavy rain
+    '71': lucideIcons.CloudSnow, // Light snow
+    '73': lucideIcons.CloudSnow, // Moderate snow
+    '75': lucideIcons.Snowflake, // Heavy snow
+    '77': lucideIcons.Snowflake, // Snow grains
+    '80': lucideIcons.CloudDrizzle, // Light rain showers
+    '81': lucideIcons.CloudRain, // Moderate rain showers
+    '82': lucideIcons.CloudRainWind, // Violent rain showers
+    '85': lucideIcons.CloudSnow, // Light snow showers
+    '86': lucideIcons.Snowflake, // Heavy snow showers
+    '95': lucideIcons.CloudLightning, // Thunderstorm
+    '96': lucideIcons.CloudLightning, // Thunderstorm with hail
+
+    '124': lucideIcons.Wind, // Blowing Snow
+    '125': lucideIcons.Tornado, // Funnel Cloud
+    '133': lucideIcons.CloudMoonRain, // Rain Showers Night
+    '138': lucideIcons.CloudMoon, // Cloudy Night
+    '140': lucideIcons.Thermometer, // Hot
+    '141': lucideIcons.ThermometerSnowflake, // Cold
+    '142': lucideIcons.Waves, // Humidity
+    '143': lucideIcons.Wind, // Wind
     // Battery
-    '44': lucideIcons.Battery, // Battery EMPTY
-    '45': lucideIcons.BatteryMedium, // Battery MEDIUM
-    '46': lucideIcons.BatteryFull, // Battery FULL
-    '47': lucideIcons.BatteryLow, // Battery LOW
+    '144': lucideIcons.Battery, // Battery EMPTY
+    '145': lucideIcons.BatteryMedium, // Battery MEDIUM
+    '146': lucideIcons.BatteryFull, // Battery FULL
+    '147': lucideIcons.BatteryLow, // Battery LOW
 };
 
 function getIconSvg(iconCode: string, size: number = 64): string {
     let svgString = WEATHER_ICONS[iconCode];
     if (!svgString) {
         console.warn(`Icon code ${iconCode} not found, defaulting to Cloud`);
-        svgString = WEATHER_ICONS['02'];
+        svgString = WEATHER_ICONS['3'];
     }
     svgString = svgString
         .replace(/width="24"/, `width="${size}"`)
@@ -84,27 +81,28 @@ function formatDateTime() {
         month: 'short',
         hour: '2-digit',
         minute: '2-digit',
-        timeZone: 'America/Edmonton',
+        timeZone: 'America/New_York',
         hour12: true
     }).replace(',', ' |');
 }
 
 function getBatteryIcon(percentage: number): string {
-    if (percentage < 2) return getIconSvg('44', 48);      // Battery EMPTY
-    if (percentage < 10) return getIconSvg('47', 48);     // Battery LOW
-    if (percentage > 90) return getIconSvg('46', 48);     // Battery FULL
-    return getIconSvg('45', 48);                          // Battery MEDIUM
+    if (percentage < 2) return getIconSvg('144', 48);      // Battery EMPTY
+    if (percentage < 10) return getIconSvg('147', 48);     // Battery LOW
+    if (percentage > 90) return getIconSvg('146', 48);     // Battery FULL
+    return getIconSvg('145', 48);                          // Battery MEDIUM
 }
 
 async function fetchWeatherData() {
     try {
-        const response = await fetch(`https://weather.gc.ca/api/app/en/Location/${WEATHER_LOCATION.lat},${WEATHER_LOCATION.lon}?type=city`, {
+//        const response = await fetch(`https://weather.gc.ca/api/app/en/Location/${WEATHER_LOCATION.lat},${WEATHER_LOCATION.lon}?type=city`, {
+//        const response = await fetch(`https://api.weather.gov/points/${WEATHER_LOCATION.lat},${WEATHER_LOCATION.lon}`, {
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LOCATION.lat}&longitude=${WEATHER_LOCATION.long}&current=temperature_2m,apparent_temperature,precipitation,wind_speed_10m&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York`, {
             headers: {
                 'Accept': 'application/json, text/plain, */*',
                 'Cache-Control': 'max-age=0,no-cache',
                 'Pragma': 'no-cache',
-                'Referer': `https://weather.gc.ca/en/location/index.html?coords=${WEATHER_LOCATION.lat},${WEATHER_LOCATION.lon}`,
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+                'User-Agent': '(kindle.cheni.dev)'
             }
         });
 
@@ -171,9 +169,13 @@ export async function captureWeatherScreenshot(batteryPercentage: number) {
 
 async function createWeatherImage(weatherData: any, batteryPercentage: number) {
     try {
+        console.log('Weather data:', weatherData);
         if (!Array.isArray(weatherData) || weatherData.length === 0 || !weatherData[0].observation) {
             throw new Error('Invalid weather data format');
         }
+
+	const currentIcon
+
         const weatherData0 = weatherData[0];
         const observation = weatherData0.observation;
         const currentIconSvg = getIconSvg(observation.iconCode, 100);
@@ -301,12 +303,12 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --dashboard-width: 1448px;
-      --dashboard-height: 1072px;
-      --aspect-ratio: calc(1072 / 1448);
+      --dashboard-width: 1024px;
+      --dashboard-height: 758px;
+      --aspect-ratio: calc(758 / 1024);
       
       /* Color variables */
       --text-primary: #000000;    /* For the most important information */
@@ -318,7 +320,7 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
     }
     
     body {
-      font-family: 'Comic Neue', cursive;
+      font-family: 'EB Garamond', serif;
       margin: 0;
       background-color: #f0f0f0;
       width: 100vw;
@@ -332,7 +334,7 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
     .container {
       width: var(--dashboard-width);
       height: var(--dashboard-height);
-      aspect-ratio: calc(1448 / 1072);
+      aspect-ratio: calc(1024 / 758);
       display: flex;
       background: #fff;
       max-width: 100vw;
@@ -542,14 +544,14 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
       color: var(--text-primary);
     }
     
-    @media (max-aspect-ratio: 1448/1072) {
+    @media (max-aspect-ratio: 1024/758) {
       .container {
         width: 100vw;
         height: calc(100vw * var(--aspect-ratio));
       }
     }
     
-    @media (min-aspect-ratio: 1448/1072) {
+    @media (min-aspect-ratio: 1024/758) {
       .container {
         height: 100vh;
         width: calc(100vh / var(--aspect-ratio));
@@ -638,9 +640,9 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
         </div>
         <div class="current-condition">
             <div class="weather-details">
-                <span>${getIconSvg('40', 48)} <span class="temp-value">${observation.feelsLike?.metric || currentTemp}</span>°C</span>
-                <span>${getIconSvg('43', 48)} ${windString}</span>
-                <span>${getIconSvg('42', 48)} ${observation.humidity}%</span>
+                <span>${getIconSvg('140', 48)} <span class="temp-value">${observation.feelsLike?.metric || currentTemp}</span>°C</span>
+                <span>${getIconSvg('143', 48)} ${windString}</span>
+                <span>${getIconSvg('142', 48)} ${observation.humidity}%</span>
             </div>
         </div>
         <div class="aqhi-status">AQHI: ${aqhi.value} (${aqhi.riskText})</div>
