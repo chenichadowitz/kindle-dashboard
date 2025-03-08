@@ -18,56 +18,56 @@ const WEATHER_LOCATION = {
 // Best guess Environment Canada icons to Lucide icons
 // Open Meteo docs: https://open-meteo.com/en/docs#:~:text=Weather%20variable%20documentation
 const WEATHER_ICONS: { [key: string]: string } = {
-    '0': lucideIcons.Sun, // Clear sky
-    '1': lucideIcons.SunMedium, // Mainly clear
-    '2': lucideIcons.CloudSun, // Partly cloudy
-    '3': lucideIcons.Cloud, // Overcase
-    '45': lucideIcons.CloudFog, // Fog
-    '46': lucideIcons.CloudFog, // Depositing rime fog
-    '51': lucideIcons.CloudDrizzle, // Light drizzle
-    '53': lucideIcons.CloudDrizzle, // Moderate drizzle
-    '55': lucideIcons.CloudDrizzle, // Dense drizzle
-    '56': lucideIcons.CloudHail, // Freezing light drizzle
-    '57': lucideIcons.CloudHail, // Freezing dense drizzle
-    '61': lucideIcons.CloudRain, // Light rain
-    '63': lucideIcons.CloudRain, // Moderate rain
-    '65': lucideIcons.CloudRainWind, // Heavy rain
-    '66': lucideIcons.CloudHail, // Freezing light rain
-    '67': lucideIcons.CloudHail, // Freezing heavy rain
-    '71': lucideIcons.CloudSnow, // Light snow
-    '73': lucideIcons.CloudSnow, // Moderate snow
-    '75': lucideIcons.Snowflake, // Heavy snow
-    '77': lucideIcons.Snowflake, // Snow grains
-    '80': lucideIcons.CloudDrizzle, // Light rain showers
-    '81': lucideIcons.CloudRain, // Moderate rain showers
-    '82': lucideIcons.CloudRainWind, // Violent rain showers
-    '85': lucideIcons.CloudSnow, // Light snow showers
-    '86': lucideIcons.Snowflake, // Heavy snow showers
-    '95': lucideIcons.CloudLightning, // Thunderstorm
-    '96': lucideIcons.CloudLightning, // Thunderstorm with hail
+    '0': [lucideIcons.Sun, 'Clear sky']
+    '1': [lucideIcons.SunMedium, 'Mainly clear']
+    '2': [lucideIcons.CloudSun, 'Partly cloudy']
+    '3': [lucideIcons.Cloud, 'Overcast']
+    '45': [lucideIcons.CloudFog, 'Fog']
+    '46': [lucideIcons.CloudFog, 'Depositing rime fog']
+    '51': [lucideIcons.CloudDrizzle, 'Light drizzle']
+    '53': [lucideIcons.CloudDrizzle, 'Moderate drizzle']
+    '55': [lucideIcons.CloudDrizzle, 'Dense drizzle']
+    '56': [lucideIcons.CloudHail, 'Freezing light drizzle']
+    '57': [lucideIcons.CloudHail, 'Freezing dense drizzle']
+    '61': [lucideIcons.CloudRain, 'Light rain']
+    '63': [lucideIcons.CloudRain, 'Moderate rain']
+    '65': [lucideIcons.CloudRainWind, 'Heavy rain']
+    '66': [lucideIcons.CloudHail, 'Freezing light rain']
+    '67': [lucideIcons.CloudHail, 'Freezing heavy rain']
+    '71': [lucideIcons.CloudSnow, 'Light snow']
+    '73': [lucideIcons.CloudSnow, 'Moderate snow']
+    '75': [lucideIcons.Snowflake, 'Heavy snow']
+    '77': [lucideIcons.Snowflake, 'Snow grains']
+    '80': [lucideIcons.CloudDrizzle, 'Light rain showers']
+    '81': [lucideIcons.CloudRain, 'Moderate rain showers']
+    '82': [lucideIcons.CloudRainWind, 'Violent rain showers']
+    '85': [lucideIcons.CloudSnow, 'Light snow showers']
+    '86': [lucideIcons.Snowflake, 'Heavy snow showers']
+    '95': [lucideIcons.CloudLightning, 'Thunderstorm']
+    '96': [lucideIcons.CloudLightning, 'Thunderstorm with hail']
 
-    '124': lucideIcons.Wind, // Blowing Snow
-    '125': lucideIcons.Tornado, // Funnel Cloud
-    '133': lucideIcons.CloudMoonRain, // Rain Showers Night
-    '138': lucideIcons.CloudMoon, // Cloudy Night
-    '140': lucideIcons.Thermometer, // Hot
-    '141': lucideIcons.ThermometerSnowflake, // Cold
-    '142': lucideIcons.Waves, // Humidity
-    '143': lucideIcons.Wind, // Wind
+    '124': [lucideIcons.Wind, 'Blowing Snow']
+    '125': [lucideIcons.Tornado, 'Funnel Cloud']
+    '133': [lucideIcons.CloudMoonRain, 'Rain Showers Night'] // Night
+    '138': [lucideIcons.CloudMoon, 'Cloudy Night'] // Night
+    '140': [lucideIcons.Thermometer, 'Hot']
+    '141': [lucideIcons.ThermometerSnowflake, 'Cold']
+    '142': [lucideIcons.Waves, 'Humidity']
+    '143': [lucideIcons.Wind, 'Wind']
     // Battery
-    '144': lucideIcons.Battery, // Battery EMPTY
-    '145': lucideIcons.BatteryMedium, // Battery MEDIUM
-    '146': lucideIcons.BatteryFull, // Battery FULL
-    '147': lucideIcons.BatteryLow, // Battery LOW
+    '144': [lucideIcons.Battery, 'Battery EMPTY']
+    '145': [lucideIcons.BatteryMedium, 'Battery MEDIUM']
+    '146': [lucideIcons.BatteryFull, 'Battery FULL']
+    '147': [lucideIcons.BatteryLow, 'Battery LOW']
 };
 
-function getIconSvg(iconCode: string, size: number = 64): string {
+function getIconSvg(iconCode: string, size: number = 64): (string, string) {
     let svgString = WEATHER_ICONS[iconCode];
     if (!svgString) {
         console.warn(`Icon code ${iconCode} not found, defaulting to Cloud`);
         svgString = WEATHER_ICONS['3'];
     }
-    svgString = svgString
+    svgString[0] = svgString[0]
         .replace(/width="24"/, `width="${size}"`)
         .replace(/height="24"/, `height="${size}"`)
         .replace(/stroke="currentColor"/, `stroke="black"`);
@@ -84,6 +84,21 @@ function formatDateTime() {
         timeZone: 'America/New_York',
         hour12: true
     }).replace(',', ' |');
+}
+
+function transformObject(obj) {
+  const keys = Object.keys(obj);
+  const len = obj[keys[0]].length;
+  const result = [];
+
+  for (let i = 0; i < len; i++) {
+    const newObj = {};
+    keys.forEach(key => {
+      newObj[key] = obj[key][i];
+    });
+    result.push(newObj);
+  }
+  return result;
 }
 
 function getBatteryIcon(percentage: number): string {
@@ -170,130 +185,114 @@ export async function captureWeatherScreenshot(batteryPercentage: number) {
 async function createWeatherImage(weatherData: any, batteryPercentage: number) {
     try {
         console.log('Weather data:', weatherData);
-        if (!Array.isArray(weatherData) || weatherData.length === 0 || !weatherData[0].observation) {
+        if (Object.keys(weatherData).length === 0 || !weatherData.current) {
             throw new Error('Invalid weather data format');
         }
 
-	const currentIcon
+	const currentData = weatherData.current;
 
-        const weatherData0 = weatherData[0];
-        const observation = weatherData0.observation;
-        const currentIconSvg = getIconSvg(observation.iconCode, 100);
-        const currentTemp = observation.temperature.metric;
-        const currentCondition = observation.condition;
+        const currentIconSvg = getIconSvg(currentData.weather_code, 100)[0];
+        const currentTemp = currentData.temperature_2m;
+        let currentCondition = "";
+        if (currentData.snowfall > 0) {
+            currentCondition = "Snow";
+        } else if (currentData.rain > 0) {
+            currentCondition = "Rain";
+        } else if (currentData.showers > 0) {
+            currentCondition = "Showers";
+        }
+		//observation.condition;
 
         // Format current time
         const currentTime = formatDateTime();
 
         // Format wind data
-        const windSpeed = observation.windSpeed.metric;
-        const windString = windSpeed > 0 ? `${windSpeed} km/h` : 'Calm';
+        const windSpeed = currentData.wind_speed_10m;
+        const windString = windSpeed > 0 ? `${windSpeed} ${weatherData.current_units.wind_speed_10m}` : 'Calm';
 
         // Simplify alert: show only the banner text if available
         let alertHtml = '';
-        if (weatherData0.alert && Array.isArray(weatherData0.alert.alerts) && weatherData0.alert.alerts.length > 0) {
-            alertHtml = `<div class="alert"><strong>${weatherData0.alert.alerts[0].alertBannerText || 'Alert'}</strong></div>`;
-        } else {
-            alertHtml = '';
-        }
+//        if (weatherData0.alert && Array.isArray(weatherData0.alert.alerts) && weatherData0.alert.alerts.length > 0) {
+//            alertHtml = `<div class="alert"><strong>${weatherData0.alert.alerts[0].alertBannerText || 'Alert'}</strong></div>`;
+//        } else {
+//            alertHtml = '';
+//        }
 
-        const aqhi = weatherData0.aqhi;
+        const aqhi = "";//weatherData0.aqhi;
 
         // Hourly forecast reformatted into a list
         let hourlyHtml = '';
-        if (weatherData0.hourlyFcst && weatherData0.hourlyFcst.hourly) {
-
-            // Add the current hour to the hourly forecast
-            const hourlyCount = alertHtml === '' ? 10 : 9;
-            const next6Hours = weatherData0.hourlyFcst.hourly.slice(0, hourlyCount);
+        if (weatherData.hourly) {
+            // Drop this by 1 if we add in an alert anywhere
+            const hourlyCount = 10;
+            const currentDateByHourIndex = weatherData.hourly.time.indexOf(new Date().toISOString().substr(0, 14) + "00");
+            let next6Hours = {};
+            for (let key in weatherData.hourly) {
+                next6Hours[key] = weatherData.hourly[key].slice(currentDateByHourIndex, currentDateByHourIndex + hourlyCount);
+            }
+            next6Hours = transformObject(next6Hours);
             hourlyHtml = next6Hours.map((hour: any) => {
-                const iconSvg = getIconSvg(hour.iconCode, 48);
-                const conditionLength = hour.condition.length;
-                const conditionClass = conditionLength > 20 ? 'hourly-condition long-text' :
+                const iconSvgAndDesc = getIconSvg(hour.weather_code, 48);
+                const iconSvg = iconSvgAndDesc[0];
+                const conditionLength = iconSvgAndDesc[1].length;
+                const conditionClass = conditionLength > 20 ? 'hourly-condition long-text' : 
                     conditionLength > 15 ? 'hourly-condition medium-text' :
-                        'hourly-condition';
+                    'hourly-condition';
+                const timeObj = new Date(hour.time);
+                const time = `${timeObj.getHours() % 12 || 12} ${timeObj.getHours() < 12 ? 'am' : 'pm'}`;
                 return `<div class="hourly-item">
-                          <div class="hourly-time">${hour.time}</div>
+                          <div class="hourly-time">${time}</div>
                           <div class="hourly-icon">${iconSvg}</div>
-                          <div class="hourly-temp"><span class="temp-value">${hour.temperature.metric}</span>°C</div>
-                          <div class="${conditionClass}">${hour.condition}</div>
+                          <div class="hourly-temp"><span class="temp-value">${hour.temperature_2m}</span>${weatherData.hourly_units.temperature_2m}</div>
+                          <div class="${conditionClass}">${iconSvgAndDesc[1]}</div>
                         </div>`;
-            }).join('');
+                }).join('');
+                // Add feels like apparent temp above?
         }
 
         // Daily forecast optimized to show one row per day with day/night split
         let dailyHtml = '';
-        if (weatherData0.dailyFcst && weatherData0.dailyFcst.daily) {
-            const dailyForecasts = weatherData0.dailyFcst.daily;
+        if (weatherData.daily) {
+            const dailyForecasts = transformObject(weatherData.daily);
+            dailyHtml = dailyForecasts.map((forecast: any) => {
+                const date = new Date(forecast.time);
+                const dateLabel = `${date.toLocaleDateString('en-US', {weekday: 'short'})}, ${date.getDate()}`;
+                let rowHtml = '<div class="daily-item">';
+                rowHtml += `<div class="daily-header">${dateLabel}</div>`;
 
-            // Group forecasts by date and separate day/night
-            const groupedForecasts = dailyForecasts.reduce((acc: any, forecast: any) => {
-                const date = forecast.date;
-                if (!acc[date]) {
-                    acc[date] = {
-                        date,
-                        label: forecast.periodLabel,
-                        day: null,
-                        night: null
-                    };
-                }
-
-                // Check if it's a night forecast by looking for "Night" in the label
-                if (forecast.periodLabel && forecast.periodLabel.includes('Night')) {
-                    acc[date].night = forecast;
-                } else {
-                    acc[date].day = forecast;
-                }
-
-                return acc;
-            }, {});
-
-            dailyHtml = Object.values(groupedForecasts)
-                .map((forecast: any) => {
-                    // Extract just the day from the date label (e.g., "Wed, 19" from "Wed, 19 Feb")
-                    const dateLabel = (forecast.label || forecast.date).split(' ').slice(0, 2).join(' ');
-                    let rowHtml = '<div class="daily-item">';
-                    rowHtml += `<div class="daily-header">${dateLabel}</div>`;
-
-                    // Create a day column (even if empty for night-only forecasts)
-                    rowHtml += '<div class="temp-group">';
-                    if (forecast.day) {
-                        const dayIcon = getIconSvg(forecast.day.iconCode, 48);
-                        const summaryLength = forecast.day.summary.length;
-                        const conditionClass = summaryLength > 20 ? 'daily-condition long-text' : 'daily-condition';
-                        rowHtml += `
+                rowHtml += '<div class="temp-group">';
+                if (forecast.temperature_2m_max) {
+                    const iconAndDesc = getIconSvg(forecast.weather_code, 48);
+                    const summaryLength = iconAndDesc[1].length;
+                    const conditionClass = summaryLength > 20 ? 'daily-condition long-text': 'daily-condition';
+                    rowHtml += `
                             <div class="temp-block">
                                 <div class="temp-row">
-                                    <div class="daily-icon">${dayIcon}</div>
-                                    <div class="daily-temp"><span class="temp-value">${forecast.day.temperature.metric}</span>°C</div>
+                                    <div class="daily-icon">${iconAndDesc[0]}</div>
+                                    <div class="daily-temp"><span class="temp-value">${forecast.temperature_2m_max}</span>${weatherData.daily_units.temperature_2m_max}</div>
                                 </div>
-                                <div class="${conditionClass}">${forecast.day.summary}</div>
+                                <div class="${conditionClass}">${iconAndDesc[1]}</div>
                             </div>`;
-                    }
-                    rowHtml += '</div>';
-
-                    // Create a night column
-                    rowHtml += '<div class="temp-group">';
-                    if (forecast.night) {
-                        const nightIcon = getIconSvg(forecast.night.iconCode, 48);
-                        const summaryLength = forecast.night.summary.length;
-                        const conditionClass = summaryLength > 18 ? 'daily-condition extra-long-text' :
-                            summaryLength > 9 ? 'daily-condition long-text' :
-                                'daily-condition';
-                        rowHtml += `
+                }
+                rowHtml += '</div>';
+                rowHtml += '<div class="temp-group">';
+                if (forecast.temperature_2m_min) {
+                    const iconAndDesc = getIconSvg(forecast.weather_code, 48);
+                    const summaryLength = iconAndDesc[1].length;
+                    const conditionClass = summaryLength > 20 ? 'daily-condition long-text': 'daily-condition';
+                    rowHtml += `
                             <div class="temp-block">
                                 <div class="temp-row">
-                                    <div class="daily-icon">${nightIcon}</div>
-                                    <div class="daily-temp"><span class="temp-value">${forecast.night.temperature.metric}</span>°C</div>
+                                    <div class="daily-icon">${iconAndDesc[0]}</div>
+                                    <div class="daily-temp"><span class="temp-value">${forecast.temperature_2m_max}</span>${weatherData.daily_units.temperature_2m_max}</div>
                                 </div>
-                                <div class="${conditionClass}">${forecast.night.summary}</div>
+                                <div class="${conditionClass}">${iconAndDesc[1]}</div>
                             </div>`;
-                    }
-                    rowHtml += '</div>';
-
-                    rowHtml += '</div>';
-                    return rowHtml;
-                }).join('');
+                }
+                rowHtml += '</div>';
+                rowHtml += '</div>';
+                return rowHtml;
+            }).join('');
         }
 
         // Build the HTML with fixed dimensions optimized for Kindle
@@ -634,18 +633,18 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
         <div class="current-weather">
           <div class="temp-group">
             <span class="icon">${currentIconSvg}</span>
-            <span class="current-temp"><span class="temp-value">${currentTemp}</span>°C</span>
+            <span class="current-temp"><span class="temp-value">${currentTemp}</span>${weatherData.current_units.temperature_2m}</span>
           </div>
           <span class="current-time">${currentTime.split('|')[1].trim()}</span>
         </div>
         <div class="current-condition">
             <div class="weather-details">
-                <span>${getIconSvg('140', 48)} <span class="temp-value">${observation.feelsLike?.metric || currentTemp}</span>°C</span>
-                <span>${getIconSvg('143', 48)} ${windString}</span>
-                <span>${getIconSvg('142', 48)} ${observation.humidity}%</span>
+                <span>${getIconSvg('140', 48)[0]} <span class="temp-value">${weatherData.current.apparent_temperature || currentTemp}</span>${weatherData.current_units.apparent_temperature}</span>
+                <span>${getIconSvg('143', 48)[0]} ${windString}</span>
+                <span>${getIconSvg('142', 48)[0]} ${weatherData.current.relative_humidity}%</span>
             </div>
         </div>
-        <div class="aqhi-status">AQHI: ${aqhi.value} (${aqhi.riskText})</div>
+        <div class="aqhi-status">AQHI: something (here)</div>
       </div>
       <div class="section">
         ${alertHtml}
