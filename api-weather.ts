@@ -17,51 +17,51 @@ const WEATHER_LOCATION = {
 // Weather icon mapping to Lucide static SVG strings
 // Best guess Environment Canada icons to Lucide icons
 // Open Meteo docs: https://open-meteo.com/en/docs#:~:text=Weather%20variable%20documentation
-const WEATHER_ICONS: { [key: string]: string } = {
-    '0': [lucideIcons.Sun, 'Clear sky']
-    '1': [lucideIcons.SunMedium, 'Mainly clear']
-    '2': [lucideIcons.CloudSun, 'Partly cloudy']
-    '3': [lucideIcons.Cloud, 'Overcast']
-    '45': [lucideIcons.CloudFog, 'Fog']
-    '46': [lucideIcons.CloudFog, 'Depositing rime fog']
-    '51': [lucideIcons.CloudDrizzle, 'Light drizzle']
-    '53': [lucideIcons.CloudDrizzle, 'Moderate drizzle']
-    '55': [lucideIcons.CloudDrizzle, 'Dense drizzle']
-    '56': [lucideIcons.CloudHail, 'Freezing light drizzle']
-    '57': [lucideIcons.CloudHail, 'Freezing dense drizzle']
-    '61': [lucideIcons.CloudRain, 'Light rain']
-    '63': [lucideIcons.CloudRain, 'Moderate rain']
-    '65': [lucideIcons.CloudRainWind, 'Heavy rain']
-    '66': [lucideIcons.CloudHail, 'Freezing light rain']
-    '67': [lucideIcons.CloudHail, 'Freezing heavy rain']
-    '71': [lucideIcons.CloudSnow, 'Light snow']
-    '73': [lucideIcons.CloudSnow, 'Moderate snow']
-    '75': [lucideIcons.Snowflake, 'Heavy snow']
-    '77': [lucideIcons.Snowflake, 'Snow grains']
-    '80': [lucideIcons.CloudDrizzle, 'Light rain showers']
-    '81': [lucideIcons.CloudRain, 'Moderate rain showers']
-    '82': [lucideIcons.CloudRainWind, 'Violent rain showers']
-    '85': [lucideIcons.CloudSnow, 'Light snow showers']
-    '86': [lucideIcons.Snowflake, 'Heavy snow showers']
-    '95': [lucideIcons.CloudLightning, 'Thunderstorm']
-    '96': [lucideIcons.CloudLightning, 'Thunderstorm with hail']
+const WEATHER_ICONS: { [key: string]: string[] } = {
+    '0': [lucideIcons.Sun, 'Clear sky'],
+    '1': [lucideIcons.SunMedium, 'Mainly clear'],
+    '2': [lucideIcons.CloudSun, 'Partly cloudy'],
+    '3': [lucideIcons.Cloud, 'Overcast'],
+    '45': [lucideIcons.CloudFog, 'Fog'],
+    '46': [lucideIcons.CloudFog, 'Depositing rime fog'],
+    '51': [lucideIcons.CloudDrizzle, 'Light drizzle'],
+    '53': [lucideIcons.CloudDrizzle, 'Moderate drizzle'],
+    '55': [lucideIcons.CloudDrizzle, 'Dense drizzle'],
+    '56': [lucideIcons.CloudHail, 'Freezing light drizzle'],
+    '57': [lucideIcons.CloudHail, 'Freezing dense drizzle'],
+    '61': [lucideIcons.CloudRain, 'Light rain'],
+    '63': [lucideIcons.CloudRain, 'Moderate rain'],
+    '65': [lucideIcons.CloudRainWind, 'Heavy rain'],
+    '66': [lucideIcons.CloudHail, 'Freezing light rain'],
+    '67': [lucideIcons.CloudHail, 'Freezing heavy rain'],
+    '71': [lucideIcons.CloudSnow, 'Light snow'],
+    '73': [lucideIcons.CloudSnow, 'Moderate snow'],
+    '75': [lucideIcons.Snowflake, 'Heavy snow'],
+    '77': [lucideIcons.Snowflake, 'Snow grains'],
+    '80': [lucideIcons.CloudDrizzle, 'Light rain showers'],
+    '81': [lucideIcons.CloudRain, 'Moderate rain showers'],
+    '82': [lucideIcons.CloudRainWind, 'Violent rain showers'],
+    '85': [lucideIcons.CloudSnow, 'Light snow showers'],
+    '86': [lucideIcons.Snowflake, 'Heavy snow showers'],
+    '95': [lucideIcons.CloudLightning, 'Thunderstorm'],
+    '96': [lucideIcons.CloudLightning, 'Thunderstorm with hail'],
 
-    '124': [lucideIcons.Wind, 'Blowing Snow']
-    '125': [lucideIcons.Tornado, 'Funnel Cloud']
-    '133': [lucideIcons.CloudMoonRain, 'Rain Showers Night'] // Night
-    '138': [lucideIcons.CloudMoon, 'Cloudy Night'] // Night
-    '140': [lucideIcons.Thermometer, 'Hot']
-    '141': [lucideIcons.ThermometerSnowflake, 'Cold']
-    '142': [lucideIcons.Waves, 'Humidity']
-    '143': [lucideIcons.Wind, 'Wind']
+    '124': [lucideIcons.Wind, 'Blowing Snow'],
+    '125': [lucideIcons.Tornado, 'Funnel Cloud'],
+    '133': [lucideIcons.CloudMoonRain, 'Rain Showers Night'], // Night
+    '138': [lucideIcons.CloudMoon, 'Cloudy Night'], // Night
+    '140': [lucideIcons.Thermometer, 'Hot'],
+    '141': [lucideIcons.ThermometerSnowflake, 'Cold'],
+    '142': [lucideIcons.Waves, 'Humidity'],
+    '143': [lucideIcons.Wind, 'Wind'],
     // Battery
-    '144': [lucideIcons.Battery, 'Battery EMPTY']
-    '145': [lucideIcons.BatteryMedium, 'Battery MEDIUM']
-    '146': [lucideIcons.BatteryFull, 'Battery FULL']
+    '144': [lucideIcons.Battery, 'Battery EMPTY'],
+    '145': [lucideIcons.BatteryMedium, 'Battery MEDIUM'],
+    '146': [lucideIcons.BatteryFull, 'Battery FULL'],
     '147': [lucideIcons.BatteryLow, 'Battery LOW']
 };
 
-function getIconSvg(iconCode: string, size: number = 64): (string, string) {
+function getIconSvg(iconCode: string, size: number = 64): string[] {
     let svgString = WEATHER_ICONS[iconCode];
     if (!svgString) {
         console.warn(`Icon code ${iconCode} not found, defaulting to Cloud`);
