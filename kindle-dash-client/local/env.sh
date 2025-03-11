@@ -3,7 +3,7 @@
 # Export environment variables here
 export WIFI_TEST_IP=${WIFI_TEST_IP:-1.1.1.1}
 export REFRESH_SCHEDULE=${REFRESH_SCHEDULE:-"0 */3 * * *"}
-export TIMEZONE=${TIMEZONE:-"America/Edmonton"}
+export TIMEZONE=${TIMEZONE:-"America/New_York"}
 
 # By default, partial screen updates are used to update the screen,
 # to prevent the screen from flashing. After a few partial updates,
