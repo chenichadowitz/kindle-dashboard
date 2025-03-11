@@ -1,6 +1,6 @@
 import express from 'express';
 import path from 'path';
-import { captureWeatherScreenshot as captureWeatherScreenshotWeb } from './web-weather';
+//import { captureWeatherScreenshot as captureWeatherScreenshotWeb } from './web-weather';
 import { captureWeatherScreenshot as captureWeatherScreenshotApi } from './api-weather';
 
 // Add these constants near the top with other constants

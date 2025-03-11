@@ -5,8 +5,8 @@ import * as lucideIcons from 'lucide-static';
 import fs from 'fs';
 import { chromium } from 'playwright';
 
-const DASHBOARD_WIDTH = 758;
-const DASHBOARD_HEIGHT = 1024;
+const DASHBOARD_WIDTH = 1024;
+const DASHBOARD_HEIGHT = 758;
 const PORT = 8080; // Different from the other weather server
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
 const WEATHER_LOCATION = {
@@ -62,16 +62,16 @@ const WEATHER_ICONS: { [key: string]: string[] } = {
 };
 
 function getIconSvg(iconCode: string, size: number = 64): string[] {
-    let svgString = WEATHER_ICONS[iconCode];
-    if (!svgString) {
+    let [svgIcon, description] = WEATHER_ICONS[iconCode];
+    if (!svgIcon) {
         console.warn(`Icon code ${iconCode} not found, defaulting to Cloud`);
-        svgString = WEATHER_ICONS['3'];
+        [svgIcon, description] = WEATHER_ICONS['3'];
     }
-    svgString[0] = svgString[0]
+    svgIcon = svgIcon
         .replace(/width="24"/, `width="${size}"`)
         .replace(/height="24"/, `height="${size}"`)
         .replace(/stroke="currentColor"/, `stroke="black"`);
-    return svgString;
+    return [svgIcon, description];
 }
 
 function formatDateTime() {
@@ -101,7 +101,7 @@ function transformObject(obj) {
   return result;
 }
 
-function getBatteryIcon(percentage: number): string {
+function getBatteryIcon(percentage: number): string[] {
     if (percentage < 2) return getIconSvg('144', 48);      // Battery EMPTY
     if (percentage < 10) return getIconSvg('147', 48);     // Battery LOW
     if (percentage > 90) return getIconSvg('146', 48);     // Battery FULL
@@ -112,7 +112,7 @@ async function fetchWeatherData() {
     try {
 //        const response = await fetch(`https://weather.gc.ca/api/app/en/Location/${WEATHER_LOCATION.lat},${WEATHER_LOCATION.lon}?type=city`, {
 //        const response = await fetch(`https://api.weather.gov/points/${WEATHER_LOCATION.lat},${WEATHER_LOCATION.lon}`, {
-        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${WEATHER_LOCATION.lat}&longitude=${WEATHER_LOCATION.long}&current=temperature_2m,apparent_temperature,precipitation,wind_speed_10m&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York`, {
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?forecast_days=8&latitude=${WEATHER_LOCATION.lat}&longitude=${WEATHER_LOCATION.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,wind_speed_10m&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FNew_York`, {
             headers: {
                 'Accept': 'application/json, text/plain, */*',
                 'Cache-Control': 'max-age=0,no-cache',
@@ -190,8 +190,7 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
         }
 
 	const currentData = weatherData.current;
-
-        const currentIconSvg = getIconSvg(currentData.weather_code, 100)[0];
+        const currentIconSvg = getIconSvg(currentData.weather_code, 64)[0];
         const currentTemp = currentData.temperature_2m;
         let currentCondition = "";
         if (currentData.snowfall > 0) {
@@ -207,7 +206,7 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
         const currentTime = formatDateTime();
 
         // Format wind data
-        const windSpeed = currentData.wind_speed_10m;
+        const windSpeed = Math.round(currentData.wind_speed_10m);
         const windString = windSpeed > 0 ? `${windSpeed} ${weatherData.current_units.wind_speed_10m}` : 'Calm';
 
         // Simplify alert: show only the banner text if available
@@ -224,8 +223,9 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
         let hourlyHtml = '';
         if (weatherData.hourly) {
             // Drop this by 1 if we add in an alert anywhere
-            const hourlyCount = 10;
-            const currentDateByHourIndex = weatherData.hourly.time.indexOf(new Date().toISOString().substr(0, 14) + "00");
+            const hourlyCount = 8;
+            const nowHour = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
+	    const currentDateByHourIndex = weatherData.hourly.time.indexOf(`${nowHour.getFullYear()}-${(nowHour.getMonth()+1).toString().padStart(2, "0")}-${nowHour.getDate().toString().padStart(2, "0")}T${nowHour.getHours().toString().padStart(2, "0")}:00`); 
             let next6Hours = {};
             for (let key in weatherData.hourly) {
                 next6Hours[key] = weatherData.hourly[key].slice(currentDateByHourIndex, currentDateByHourIndex + hourlyCount);
@@ -243,8 +243,11 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
                 return `<div class="hourly-item">
                           <div class="hourly-time">${time}</div>
                           <div class="hourly-icon">${iconSvg}</div>
-                          <div class="hourly-temp"><span class="temp-value">${hour.temperature_2m}</span>${weatherData.hourly_units.temperature_2m}</div>
-                          <div class="${conditionClass}">${iconSvgAndDesc[1]}</div>
+                          <div class="hourly-temp">
+			    <span class="temp-value">${Math.round(hour.temperature_2m)}</span>${weatherData.hourly_units.temperature_2m}  /  
+			    <span class="temp-value">${Math.round(hour.apparent_temperature)}</span>${weatherData.hourly_units.apparent_temperature}
+			  </div>
+                          <!-- <div class="${conditionClass}">${iconSvgAndDesc[1]}</div> -->
                         </div>`;
                 }).join('');
                 // Add feels like apparent temp above?
@@ -269,27 +272,28 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
                             <div class="temp-block">
                                 <div class="temp-row">
                                     <div class="daily-icon">${iconAndDesc[0]}</div>
-                                    <div class="daily-temp"><span class="temp-value">${forecast.temperature_2m_max}</span>${weatherData.daily_units.temperature_2m_max}</div>
-                                </div>
-                                <div class="${conditionClass}">${iconAndDesc[1]}</div>
+                                    <div class="daily-temp"><span class="temp-value">${Math.round(forecast.temperature_2m_max)}</span>${weatherData.daily_units.temperature_2m_max}  /  `;
+		    rowHtml += `<span class="temp-value">${Math.round(forecast.temperature_2m_min)}</span>${weatherData.daily_units.temperature_2m_min}</div>
+    				    </div>
+                            <!--    <div class="${conditionClass}">${iconAndDesc[1]}</div> -->
                             </div>`;
                 }
                 rowHtml += '</div>';
-                rowHtml += '<div class="temp-group">';
-                if (forecast.temperature_2m_min) {
-                    const iconAndDesc = getIconSvg(forecast.weather_code, 48);
-                    const summaryLength = iconAndDesc[1].length;
-                    const conditionClass = summaryLength > 20 ? 'daily-condition long-text': 'daily-condition';
-                    rowHtml += `
-                            <div class="temp-block">
-                                <div class="temp-row">
-                                    <div class="daily-icon">${iconAndDesc[0]}</div>
-                                    <div class="daily-temp"><span class="temp-value">${forecast.temperature_2m_max}</span>${weatherData.daily_units.temperature_2m_max}</div>
-                                </div>
-                                <div class="${conditionClass}">${iconAndDesc[1]}</div>
-                            </div>`;
-                }
-                rowHtml += '</div>';
+             //   rowHtml += '<div class="temp-group">';
+             //   if (forecast.temperature_2m_min) {
+             //       const iconAndDesc = getIconSvg(forecast.weather_code, 48);
+             //       const summaryLength = iconAndDesc[1].length;
+             //       const conditionClass = summaryLength > 20 ? 'daily-condition long-text': 'daily-condition';
+             //       rowHtml += `
+             //               <div class="temp-block">
+             //                   <div class="temp-row">
+             //                       <!-- <div class="daily-icon">${iconAndDesc[0]}</div> -->
+             //                       <div class="daily-temp"><span class="temp-value">${Math.round(forecast.temperature_2m_min)}</span>${weatherData.daily_units.temperature_2m_min}</div>
+             //                   </div>
+             //               <!--    <div class="${conditionClass}">${iconAndDesc[1]}</div> -->
+             //               </div>`;
+             //   }
+             //   rowHtml += '</div>';
                 rowHtml += '</div>';
                 return rowHtml;
             }).join('');
@@ -356,7 +360,7 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
     }
     
     .section {
-      margin-bottom: 12px;
+      margin-bottom: 4px;
       flex-shrink: 0;
     }
     
@@ -372,22 +376,22 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
     .hourly-item, .daily-item {
       display: flex;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 22px;
       gap: 8px;
     }
     
     .hourly-time, .daily-date {
-      flex: 1;
+      flex: 0.5;
       font-size: min(45px, 3.2vw);
       font-weight: bold;
     }
     
     .hourly-icon, .daily-icon {
-      flex: 0.5;
+      flex: 0.3;
     }
     
     .hourly-temp, .daily-temp {
-      flex: 0.8;
+      flex: 1;
       font-size: min(45px, 3.2vw);
       font-weight: bold;
     }
@@ -420,9 +424,19 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
     }
     
     .current-temp {
-      font-size: min(101px, 7.2vw);
+      display: flex;
+      align-items: center;
+      font-size: min(64px, 7.2vw);
       font-weight: bold;
       color: var(--text-primary);
+    }
+
+    .current-apparent-temp {
+      display: flex;
+      align-items: center;
+      font-size: min(64px, 7.2vw);
+      font-weight: bold;
+      color: var(--text-secondary);
     }
     
     .current-condition, .aqhi-status {
@@ -441,7 +455,7 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
         align-items: flex-start;
         gap: 16px;
         margin-top: 14px;
-        margin-bottom: 14px;
+        margin-bottom: 20px;
         padding-left: 20px;
     }
 
@@ -471,7 +485,7 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
     .daily-icon {
       display: flex;
       justify-content: left;
-      align-items: left;
+      align-items: center;
       width: 48px;
     }
     
@@ -516,6 +530,16 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
       gap: 16px;
     }
 
+    .ten-day-forecast {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: min(60px, 7.2vw);
+      font-weight: bold;
+      margin-bottom: 20px;
+      gap: 16px;
+    }
+
     .date-battery {
       font-size: min(45px, 3.2vw);
       color: var(--text-secondary);
@@ -538,7 +562,7 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
     }
 
     .current-time {
-      font-size: min(57px, 3.4vw);
+      font-size: min(28px, 3.4vw);
       font-weight: bold;
       color: var(--text-primary);
     }
@@ -596,7 +620,7 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
     }
 
     .weather-details {
-        font-size: min(51px, 3.4vw);
+        font-size: min(36px, 3.4vw);
         font-weight: bold;
         margin: 4px 0;
         color: var(--text-secondary);
@@ -625,36 +649,45 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
     <div class="column" id="left-column">
       <div class="section">
         <div class="header-status">
-          <span class="${currentCondition.length > 20 ? 'current-condition long-text' :
-                currentCondition.length > 15 ? 'current-condition medium-text' :
-                    'current-condition'}">${currentCondition}</span>
-          <span class="date-battery">${getBatteryIcon(batteryPercentage)} ${batteryPercentage}% | ${currentTime.split('|')[0]}</span>
+          <span class="current-time">
+		  <!-- "${currentTime.split('|')[1].trim().length > 20 ? 'current-condition long-text' :
+                currentTime.split('|')[1].trim().length > 15 ? 'current-condition medium-text' :
+                    'current-condition'}" -->
+	  ${currentTime.split('|')[1].trim()}</span>
+          <span class="date-battery">${getBatteryIcon(batteryPercentage)[0]} ${batteryPercentage}% | ${currentTime.split('|')[0]}</span>
         </div>
         <div class="current-weather">
-          <div class="temp-group">
-            <span class="icon">${currentIconSvg}</span>
-            <span class="current-temp"><span class="temp-value">${currentTemp}</span>${weatherData.current_units.temperature_2m}</span>
-          </div>
-          <span class="current-time">${currentTime.split('|')[1].trim()}</span>
+         <!-- <div class="temp-group"> -->
+            
+	      <span class="current-temp">${currentIconSvg} <span class="temp-value">${Math.round(currentTemp)}</span>${weatherData.current_units.temperature_2m}</span>
+	    
+	    
+	      <span class="current-apparent-temp">${getIconSvg('140', 64)[0]} <span class="temp-value">${Math.round(weatherData.current.apparent_temperature || currentTemp)}</span>${weatherData.current_units.apparent_temperature}</span>
+	    
+	<!-- </div> -->
+          <!-- <span class="current-time">${currentTime.split('|')[1].trim()}</span> -->
         </div>
         <div class="current-condition">
             <div class="weather-details">
-                <span>${getIconSvg('140', 48)[0]} <span class="temp-value">${weatherData.current.apparent_temperature || currentTemp}</span>${weatherData.current_units.apparent_temperature}</span>
+                <!-- <span>${getIconSvg('140', 48)[0]} <span class="temp-value">${weatherData.current.apparent_temperature || currentTemp}</span>${weatherData.current_units.apparent_temperature}</span> -->
                 <span>${getIconSvg('143', 48)[0]} ${windString}</span>
-                <span>${getIconSvg('142', 48)[0]} ${weatherData.current.relative_humidity}%</span>
+                <span>${getIconSvg('142', 48)[0]} ${weatherData.current.relative_humidity_2m}%</span>
             </div>
         </div>
-        <div class="aqhi-status">AQHI: something (here)</div>
+        <!-- <div class="aqhi-status">AQHI: something (here)</div> -->
       </div>
+      <!-- 
       <div class="section">
         ${alertHtml}
       </div>
+      -->
       <div class="section">
         ${hourlyHtml}
       </div>
     </div>
     <div class="column" id="right-column">
       <div class="section">
+        <div class="ten-day-forecast">10 Day Forecast</div>
         ${dailyHtml}
       </div>
     </div>
