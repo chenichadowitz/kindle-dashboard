@@ -6,4 +6,4 @@ battery_percent=$(gasgauge-info -s)
 "$(dirname "$0")/../xh" -d -q get https://kindle.cheni.dev/battery/$battery_percent
 
 # Fetch the dashboard image
-"$(dirname "$0")/../xh" -d -q -o "$1" get https://kindle.cheni/dash.png
+"$(dirname "$0")/../xh" -d -q -o "$1" get https://kindle.cheni.dev/dash.png
