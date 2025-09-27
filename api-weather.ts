@@ -78,12 +78,13 @@ function formatDateTime() {
     const date = new Date();
     return date.toLocaleString('en-US', {
         day: '2-digit',
-        month: 'short',
+        month: 'long',
         hour: '2-digit',
         minute: '2-digit',
         timeZone: 'America/New_York',
         hour12: true
-    }).replace(',', ' |');
+    }).split(' at ').reverse().join(', ');
+    //.replace(',', ' |');
 }
 
 function transformObject(obj) {
@@ -223,7 +224,7 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
         let hourlyHtml = '';
         if (weatherData.hourly) {
             // Drop this by 1 if we add in an alert anywhere
-            const hourlyCount = 8;
+            const hourlyCount = 6;
             const nowHour = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
 	    const currentDateByHourIndex = weatherData.hourly.time.indexOf(`${nowHour.getFullYear()}-${(nowHour.getMonth()+1).toString().padStart(2, "0")}-${nowHour.getDate().toString().padStart(2, "0")}T${nowHour.getHours().toString().padStart(2, "0")}:00`); 
             let next6Hours = {};
@@ -650,11 +651,7 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
       <div class="section">
         <div class="header-status">
           <span class="current-time">
-		  <!-- "${currentTime.split('|')[1].trim().length > 20 ? 'current-condition long-text' :
-                currentTime.split('|')[1].trim().length > 15 ? 'current-condition medium-text' :
-                    'current-condition'}" -->
-	  ${currentTime.split('|')[1].trim()}</span>
-          <span class="date-battery">${getBatteryIcon(batteryPercentage)[0]} ${batteryPercentage}% | ${currentTime.split('|')[0]}</span>
+	  Last updated: ${currentTime.trim()}</span>
         </div>
         <div class="current-weather">
          <!-- <div class="temp-group"> -->
@@ -665,7 +662,6 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
 	      <span class="current-apparent-temp">${getIconSvg('140', 64)[0]} <span class="temp-value">${Math.round(weatherData.current.apparent_temperature || currentTemp)}</span>${weatherData.current_units.apparent_temperature}</span>
 	    
 	<!-- </div> -->
-          <!-- <span class="current-time">${currentTime.split('|')[1].trim()}</span> -->
         </div>
         <div class="current-condition">
             <div class="weather-details">
@@ -687,6 +683,9 @@ async function createWeatherImage(weatherData: any, batteryPercentage: number) {
     </div>
     <div class="column" id="right-column">
       <div class="section">
+        <div class="date-battery" style="justify-content: flex-end">
+          ${getBatteryIcon(batteryPercentage)[0]} ${batteryPercentage}%
+        </div>
         <div class="ten-day-forecast">10 Day Forecast</div>
         ${dailyHtml}
       </div>
